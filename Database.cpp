@@ -4,7 +4,7 @@ Database::Database()
 {
 	namespace fs = std::experimental::filesystem::v1;
 	directoryOpen = (fs::exists(DIRECTORY) || fs::create_directory(DIRECTORY));
-	encrypter = std::make_unique<BlowfishEncrypt>();
+	encrypter = std::make_unique<Encrypt>();
 }
 
 
