@@ -6,6 +6,7 @@
 #include <Windows.h>
 #include <memory>
 #include <experimental/filesystem>
+#include <map>
 #include "picosha2.h"
 #include "Encrypt.h"
 
@@ -17,19 +18,21 @@ class Database
 public:
 	Database();
 	~Database();
-	bool isVerifiedUser();
-	bool addPassword(std::string key);
-	bool removePassword(std::string key);
-	bool searchPassword(std::string key);
-	void displayPasswordsParentNames();
+	const bool callCommand(std::string command, std::string key);
+	bool isVerifiedUser(const std::string &none); //only for function pointer map, string none is not neccessary
+	bool addPassword(const std::string &key);
+	bool removePassword(const std::string &key);
+	bool searchPassword(const std::string &key);
+	bool displayPasswordsParentNames(const std::string &none); //only for function pointer map, string none is not neccessary
 
 	bool directoryOpen;
 
 private:
-	bool isFileExist(std::string fileName);
-	std::string getInput(std::string command);
-	std::string readFile(std::string path);
-	std::string createPath(std::string fileName);
+	bool isFileExist(const std::string &fileName);
+	std::string getInput(const std::string &command);
+	std::string readFile(const std::string &path);
+	std::string createPath(const std::string &fileName);
 	std::unique_ptr<Encrypt> encrypter;
+	const static std::vector<std::string> commandList;
 };
 

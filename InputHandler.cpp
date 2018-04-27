@@ -4,11 +4,32 @@
 
 InputHandler::InputHandler()
 {
+	database = new Database();
 }
 
 
 InputHandler::~InputHandler()
 {
+	delete database;
+}
+
+std::string InputHandler::getInput()
+{
+	std::cout << INSTRUCTIONS << std::endl;
+	std::string input;
+	std::getline(std::cin, input);
+	std::transform(input.begin(), input.end(), input.begin(), ::tolower);
+	return input;
+}
+
+bool InputHandler::callCommand(std::string input)
+{
+	std::string command = input.substr(0, input.find(" "));
+	std::string key = "";
+	if (input.find(" ") != std::string::npos) {
+		key += input.substr(input.find(" ") + 1, input.size() - 1);
+	}
+	return database->callCommand(command, key);
 }
 
 //Generating a password with random letters and numbers.

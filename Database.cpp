@@ -1,5 +1,22 @@
 #include "Database.h"
 
+/*const std::map<std::string, Database::DatabaseFunction> Database::functionMap =
+{
+	{ "add", (Database::DatabaseFunction)&Database::addPassword },
+	{ "verify", (Database::DatabaseFunction)&Database::isVerifiedUser },
+	{ "delete", (Database::DatabaseFunction)&Database::removePassword },
+	{ "search", (Database::DatabaseFunction)&Database::searchPassword },
+	{ "showall", (Database::DatabaseFunction)&Database::displayPasswordsParentNames }
+};*/
+
+const std::vector<std::string> Database::commandList = {
+	"add",
+	"verify",
+	"delete",
+	"search",
+	"showall"
+};
+
 Database::Database()
 {
 	namespace fs = std::experimental::filesystem::v1;
@@ -12,9 +29,18 @@ Database::~Database()
 {
 }
 
-bool Database::isVerifiedUser()
+const bool Database::callCommand(std::string command, std::string key)
 {
-	std::ifstream infile(VERIFY_PASSWORD.c_str());
+	if (command == commandList[0]) return addPassword(key);
+	if (command == commandList[1]) return isVerifiedUser(key);
+	if (command == commandList[2]) return removePassword(key);
+	if (command == commandList[3]) return searchPassword(key);
+	if (command == commandList[4]) return displayPasswordsParentNames(key);
+}
+
+bool Database::isVerifiedUser(const std::string &none)
+{
+	std::ifstream infile(createPath(VERIFY_PASSWORD).c_str());
 	if (infile.good()) {
 		infile.close();
 		std::string input = getInput("Enter user password");
@@ -34,9 +60,9 @@ bool Database::isVerifiedUser()
 	}
 }
 
-bool Database::addPassword(std::string key)
+bool Database::addPassword(const std::string &key)
 {
-	std::string path = encrypter->encrypt(key);
+	std::string path = key;
 	if (isFileExist(path)) {
 		std::cout << "File name already exists." << std::endl;
 		return false;
@@ -53,9 +79,9 @@ bool Database::addPassword(std::string key)
 	return true;
 }
 
-bool Database::removePassword(std::string key)
+bool Database::removePassword(const std::string &key)
 {
-	std::string path = encrypter->encrypt(key);
+	std::string path = key;
 	if (!isFileExist(path)) {
 		std::cout << "File does not exist." << std::endl;
 		return false;
@@ -64,9 +90,9 @@ bool Database::removePassword(std::string key)
 	return true;
 }
 
-bool Database::searchPassword(std::string key)
+bool Database::searchPassword(const std::string &key)
 {
-	std::string path = encrypter->encrypt(key);
+	std::string path = key;
 	if (!isFileExist(path)) {
 		std::cout << "File does not exist." << std::endl;
 		return false;
@@ -77,7 +103,7 @@ bool Database::searchPassword(std::string key)
 	return true;
 }
 
-void Database::displayPasswordsParentNames()
+bool Database::displayPasswordsParentNames(const std::string &none) //only for function pointer map
 {
 	namespace fs = std::experimental::filesystem::v1;
 	for (auto & filename : fs::directory_iterator(DIRECTORY)) {
@@ -85,9 +111,10 @@ void Database::displayPasswordsParentNames()
 			std::cout << filename << std::endl;
 		}
 	}
+	return true;
 }
 
-bool Database::isFileExist(std::string fileName)
+bool Database::isFileExist(const std::string &fileName)
 {
 	bool fileExists = false;
 	std::ifstream infile(createPath(fileName));
@@ -98,7 +125,7 @@ bool Database::isFileExist(std::string fileName)
 	return fileExists;
 }
 
-std::string Database::getInput(std::string command)
+std::string Database::getInput(const std::string &command)
 {
 	if (!command.empty()) {
 		std::cout << command << std::endl;
@@ -108,7 +135,7 @@ std::string Database::getInput(std::string command)
 	return input;
 }
 
-std::string Database::readFile(std::string path)
+std::string Database::readFile(const std::string &path)
 {
 	std::ifstream infile(createPath(path));
 	if (!infile.good()) return NULL;
@@ -118,7 +145,7 @@ std::string Database::readFile(std::string path)
 	return fileString;
 }
 
-std::string Database::createPath(std::string fileName)
+std::string Database::createPath(const std::string &fileName)
 {
 	return DIRECTORY + "/" + fileName + ".txt";
 }

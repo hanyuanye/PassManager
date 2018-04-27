@@ -1,15 +1,15 @@
-#include "Database.h"
+#include "InputHandler.h"
 
 int main() {
 	//Test Driver Code
-	Database db;
-	db.isVerifiedUser();
-	db.isVerifiedUser();
-	db.addPassword("one");
-	db.addPassword("one");
-	db.addPassword("two");
-	db.removePassword("two");
-	db.searchPassword("one");
-	db.displayPasswordsParentNames();
+	InputHandler ih;
+	while (!ih.callCommand("verify")) {
+		std::cout << "Password not Verified." << std::endl;
+	}
+	std::cout << "Password Verified." << std::endl;
+	while (true) {
+		std::string input = ih.getInput();
+		ih.callCommand(input);
+	}
 	std::cin.get();
 }
