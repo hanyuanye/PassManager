@@ -38,6 +38,24 @@ const bool Database::callCommand(std::string command, std::string key)
 	if (command == commandList[2]) return removePassword(key);
 	if (command == commandList[3]) return searchPassword(key);
 	if (command == commandList[4]) return displayPasswordsParentNames(key);
+	messenger->error(ERROR_COMMAND_DOES_NOT_EXIST);
+	return false;
+}
+
+const bool Database::addGeneratedPassword(std::string key, std::string password)
+{
+	std::string path = key;
+	if (isFileExist(path)) {
+		messenger->error(ERROR_FILE_DOES_NOT_EXIST);
+		return false;
+	}
+	messenger->msg("Generated Password: " + password);
+	messenger->storePassword(password);
+	std::ofstream outfile(createPath(path));
+	std::string inputEncrypt = encrypter->encrypt(password);
+	outfile << inputEncrypt << std::endl;
+	outfile.close();
+	return true;
 }
 
 bool Database::isVerifiedUser(const std::string &none)
@@ -45,18 +63,20 @@ bool Database::isVerifiedUser(const std::string &none)
 	std::ifstream infile(createPath(VERIFY_PASSWORD).c_str());
 	if (infile.good()) {
 		infile.close();
-		std::string input = getInput("Enter user password");
-		std::string inputHash;
-		picosha2::hash256_hex_string(input, inputHash);
 		std::string fileString = readFile(VERIFY_PASSWORD);
-		return fileString == inputHash;
+		std::string hash = fileString.substr(0, fileString.find(" "));
+		std::string salt = fileString.substr(fileString.find(" ") + 1, fileString.size() - 1);
+		std::string pass = salt + getInput("Enter user password");
+		std::string passHash;
+		picosha2::hash256_hex_string(pass, passHash);
+		return passHash == hash;
 	}
 	else {
 		std::string pass = getInput("Enter a password to be used to verify your identity later.");
-		std::string passHash;
-		picosha2::hash256_hex_string(pass, passHash);
+		std::string salt;
+		std::string passHash = getHashedSaltedPassword(pass, salt);
 		std::ofstream outfile(createPath(VERIFY_PASSWORD));
-		outfile << passHash << std::endl;
+		outfile << passHash << " " << salt << std::endl;
 		outfile.close();
 		return true;
 	}
@@ -66,14 +86,10 @@ bool Database::addPassword(const std::string &key)
 {
 	std::string path = key;
 	if (isFileExist(path)) {
-		messenger->msg("File does not exist.");
+		messenger->error(ERROR_FILE_DOES_NOT_EXIST);
 		return false;
 	}
 	std::ofstream outfile(createPath(path));
-	if (!outfile.good()) {
-		messenger->msg("Path does not exist.");
-		return false;
-	}
 	std::string input = getInput("");
 	std::string inputEncrypt = encrypter->encrypt(input);
 	outfile << inputEncrypt << std::endl;
@@ -85,7 +101,7 @@ bool Database::removePassword(const std::string &key)
 {
 	std::string path = key;
 	if (!isFileExist(path)) {
-		messenger->msg("File does not exist.");
+		messenger->error(ERROR_FILE_DOES_NOT_EXIST);
 		return false;
 	}
 	std::remove(createPath(path).c_str());
@@ -96,7 +112,7 @@ bool Database::searchPassword(const std::string &key)
 {
 	std::string path = key;
 	if (!isFileExist(path)) {
-		messenger->msg("File does not exist.");
+		messenger->error(ERROR_FILE_DOES_NOT_EXIST);
 		return false;
 	}
 	std::string encryptedText = readFile(path);
@@ -111,7 +127,7 @@ bool Database::displayPasswordsParentNames(const std::string &none) //only for f
 	namespace fs = std::experimental::filesystem::v1;
 	for (auto & filename : fs::directory_iterator(DIRECTORY)) {
 		if (filename != VERIFY_PASSWORD + ".txt") {
-			std::cout << filename << std::endl;
+			messenger->msg(filename);
 		}
 	}
 	return true;
@@ -151,4 +167,15 @@ std::string Database::readFile(const std::string &path)
 std::string Database::createPath(const std::string &fileName)
 {
 	return DIRECTORY + "/" + fileName + ".txt";
+}
+
+std::string Database::getHashedSaltedPassword(const std::string & input, std::string & salt)
+{
+	//salt input
+	std::random_device gen;
+	salt = std::to_string(gen());
+	std::string pass = salt + input;
+	std::string passHash;
+	picosha2::hash256_hex_string(pass, passHash);
+	return passHash;
 }

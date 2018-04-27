@@ -4,6 +4,8 @@
 #include <vector>
 #include <map>
 #include "Database.h"
+
+#define PASSWORD_LENGTH 15
 const std::string INSTRUCTIONS = "Enter commands. Type \"help\" for full command list.";
 
 class InputHandler

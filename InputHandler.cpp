@@ -36,6 +36,9 @@ bool InputHandler::callCommand(std::string input)
 	if (input.find(" ") != std::string::npos) {
 		key += input.substr(input.find(" ") + 1, input.size() - 1);
 	}
+	if (command == "generate") {
+		return database->addGeneratedPassword(key, generatePassword(PASSWORD_LENGTH));
+	}
 	return database->callCommand(command, key);
 }
 
@@ -55,7 +58,7 @@ std::string InputHandler::generatePassword(int length)
 char InputHandler::generateRandomCharacter()
 {
 	std::default_random_engine generator;
-	std::uniform_int_distribution<int> distribution(0, 62);
+	std::uniform_int_distribution<int> distribution(1, 6);
 	int randomResult = distribution(generator);
 	int ascii = 0;
 	if (randomResult < 10) { //value is from 1 - 10
