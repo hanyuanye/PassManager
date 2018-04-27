@@ -9,6 +9,7 @@
 #include <map>
 #include "picosha2.h"
 #include "Encrypt.h"
+#include "Messenger.h"
 
 const std::string DIRECTORY = "C:/PassFolder";
 const std::string VERIFY_PASSWORD = "verify_password";
@@ -16,7 +17,7 @@ const std::string VERIFY_PASSWORD = "verify_password";
 class Database
 {
 public:
-	Database();
+	Database(std::shared_ptr<Messenger> messenger);
 	~Database();
 	const bool callCommand(std::string command, std::string key);
 	bool isVerifiedUser(const std::string &none); //only for function pointer map, string none is not neccessary
@@ -26,13 +27,13 @@ public:
 	bool displayPasswordsParentNames(const std::string &none); //only for function pointer map, string none is not neccessary
 
 	bool directoryOpen;
-
+	const static std::vector<std::string> commandList;
 private:
 	bool isFileExist(const std::string &fileName);
 	std::string getInput(const std::string &command);
 	std::string readFile(const std::string &path);
 	std::string createPath(const std::string &fileName);
 	std::unique_ptr<Encrypt> encrypter;
-	const static std::vector<std::string> commandList;
+	std::shared_ptr<Messenger> messenger;
 };
 

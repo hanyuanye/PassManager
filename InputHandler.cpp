@@ -4,7 +4,8 @@
 
 InputHandler::InputHandler()
 {
-	database = new Database();
+	messenger = std::make_shared<Messenger>();
+	database = new Database(messenger);
 }
 
 
@@ -15,7 +16,7 @@ InputHandler::~InputHandler()
 
 std::string InputHandler::getInput()
 {
-	std::cout << INSTRUCTIONS << std::endl;
+	messenger->msg(INSTRUCTIONS);
 	std::string input;
 	std::getline(std::cin, input);
 	std::transform(input.begin(), input.end(), input.begin(), ::tolower);
@@ -25,6 +26,12 @@ std::string InputHandler::getInput()
 bool InputHandler::callCommand(std::string input)
 {
 	std::string command = input.substr(0, input.find(" "));
+	if (command == "help") {
+		return help();
+	}
+	if (command == "copy") {
+		return copy();
+	}
 	std::string key = "";
 	if (input.find(" ") != std::string::npos) {
 		key += input.substr(input.find(" ") + 1, input.size() - 1);
@@ -47,7 +54,6 @@ std::string InputHandler::generatePassword(int length)
 
 char InputHandler::generateRandomCharacter()
 {
-
 	std::default_random_engine generator;
 	std::uniform_int_distribution<int> distribution(0, 62);
 	int randomResult = distribution(generator);
@@ -78,3 +84,19 @@ bool InputHandler::isEqual(const std::string & a, const std::string & b)
 			return false;
 	return true;
 }
+
+bool InputHandler::copy()
+{
+	messenger->copyToClipboard();
+	return true;
+}
+
+bool InputHandler::help()
+{
+	std::vector<std::string> commandList = database->commandList;
+	commandList.erase(std::find(commandList.begin(), commandList.end(), "verify"));
+	commandList.push_back("copy");
+	messenger->msg(commandList);
+	return true;
+}
+

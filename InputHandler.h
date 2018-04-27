@@ -19,5 +19,8 @@ private:
 	char generateRandomCharacter();
 	static std::vector<std::string> commandList;
 	bool isEqual(const std::string& a, const std::string& b); //Case insensitive equality check
+	std::shared_ptr<Messenger> messenger;
+	bool copy();
+	bool help();
 };
 

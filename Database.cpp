@@ -17,8 +17,9 @@ const std::vector<std::string> Database::commandList = {
 	"showall"
 };
 
-Database::Database()
+Database::Database(std::shared_ptr<Messenger> messenger)
 {
+	this->messenger = messenger;
 	namespace fs = std::experimental::filesystem::v1;
 	directoryOpen = (fs::exists(DIRECTORY) || fs::create_directory(DIRECTORY));
 	encrypter = std::make_unique<Encrypt>();
@@ -27,6 +28,7 @@ Database::Database()
 
 Database::~Database()
 {
+
 }
 
 const bool Database::callCommand(std::string command, std::string key)
@@ -64,12 +66,12 @@ bool Database::addPassword(const std::string &key)
 {
 	std::string path = key;
 	if (isFileExist(path)) {
-		std::cout << "File name already exists." << std::endl;
+		messenger->msg("File does not exist.");
 		return false;
 	}
 	std::ofstream outfile(createPath(path));
 	if (!outfile.good()) {
-		std::cout << "Path does not exist." << std::endl;
+		messenger->msg("Path does not exist.");
 		return false;
 	}
 	std::string input = getInput("");
@@ -83,7 +85,7 @@ bool Database::removePassword(const std::string &key)
 {
 	std::string path = key;
 	if (!isFileExist(path)) {
-		std::cout << "File does not exist." << std::endl;
+		messenger->msg("File does not exist.");
 		return false;
 	}
 	std::remove(createPath(path).c_str());
@@ -94,12 +96,13 @@ bool Database::searchPassword(const std::string &key)
 {
 	std::string path = key;
 	if (!isFileExist(path)) {
-		std::cout << "File does not exist." << std::endl;
+		messenger->msg("File does not exist.");
 		return false;
 	}
 	std::string encryptedText = readFile(path);
 	std::string text = encrypter->decrypt(encryptedText);
-	std::cout << text << std::endl;
+	messenger->msg(text);
+	messenger->storePassword(text);
 	return true;
 }
 
@@ -128,7 +131,7 @@ bool Database::isFileExist(const std::string &fileName)
 std::string Database::getInput(const std::string &command)
 {
 	if (!command.empty()) {
-		std::cout << command << std::endl;
+		messenger->msg(command);
 	}
 	std::string input;
 	std::getline(std::cin, input);
